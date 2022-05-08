@@ -22,6 +22,7 @@ async function run() {
         console.log('db connected');
 
 
+
         //SERVICES API
         app.get('/services', async (req, res) => {
             const cursor = inventoryCollection.find()
@@ -75,7 +76,28 @@ async function run() {
             const result = await inventoryCollection.deleteOne(query);
             res.send(result);
         });
+        //ADD ITEM API
+        app.post('/add', async (req, res) => {
+            const newItem = req.body;
+            const result = await inventoryCollection.insertOne(newItem);
+            res.send(result);
+        });
 
+        // JWT API
+
+        app.get('/add', verifyJWT, async (req, res) => {
+            const decodedEmail = req.decoded.email;
+            const email = req.query.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const cursor = inventoryCollection.find(query);
+                const addItems = await cursor.toArray();
+                res.send(addItems)
+            }
+            else {
+                res.status(403).send({ message: 'forbidden access' })
+            }
+        })
 
     }
     finally {
