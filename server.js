@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
@@ -21,12 +21,55 @@ async function run() {
         const inventoryCollection = client.db('modernoFurniture').collection('inventory');
         console.log('db connected');
 
-        app.get('/inventory', async (req, res) => {
-            const query = {};
-            const cursor = inventoryCollection.find(query);
+
+
+        //SERVICES API
+        app.get('/services', async (req, res) => {
+            const cursor = inventoryCollection.find()
             const services = await cursor.toArray();
-            res.send(services);
+            res.send(services)
         });
+
+        //SINGLE SERVICE API
+        app.get('/service/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await inventoryCollection.findOne(query);
+            res.send(result);
+        });
+
+        //QUANTITY UPDATE API 
+        app.put('/service/:id', async (req, res) => {
+            const id = req.params.id;
+            const user = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    quantity: user.newQuantity
+                },
+            };
+            result = await inventoryCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
+        //QUANTITY DELIVERY API
+        app.put('/delivery/:id', async (req, res) => {
+            const id = req.params.id;
+            const user = req.body;
+            const deliver = user.quantity - 1;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    quantity: deliver
+                },
+            };
+            result = await inventoryCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
+
 
     }
     finally {
