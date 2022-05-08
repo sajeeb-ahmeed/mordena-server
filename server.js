@@ -21,6 +21,14 @@ async function run() {
         const inventoryCollection = client.db('modernoFurniture').collection('inventory');
         console.log('db connected');
 
+        // AUTH
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1d'
+            });
+            res.send({ accessToken });
+        })
 
 
         //SERVICES API
@@ -82,8 +90,8 @@ async function run() {
             const result = await inventoryCollection.insertOne(newItem);
             res.send(result);
         });
-
         // JWT API
+
 
         app.get('/add', verifyJWT, async (req, res) => {
             const decodedEmail = req.decoded.email;
@@ -98,6 +106,7 @@ async function run() {
                 res.status(403).send({ message: 'forbidden access' })
             }
         })
+
 
     }
     finally {
