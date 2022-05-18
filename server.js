@@ -11,21 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 
-function verifyJWT(req, res, next) {
-    const authHeaders = req.headers.authorization;
-    if (!authHeaders) {
-        return res.status(401).send({ message: 'unauthorized access' })
-    }
-    const token = authHeaders.split(' ')[1];
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(403).send({ message: 'Forbidden access' })
-        }
-        console.log('decoded', decoded);
-        req.decoded = decoded;
-        next();
-    });
-};
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wbiyf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 console.log(uri);
@@ -38,14 +24,7 @@ async function run() {
         console.log('db connected');
 
 
-        //AUTH
-        app.post('/login', async (req, res) => {
-            const user = req.body;
-            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-                expiresIn: '1d'
-            });
-            res.send({ accessToken });
-        })
+
 
         //SERVICES API
         app.get('/services', async (req, res) => {
@@ -108,20 +87,7 @@ async function run() {
             res.send(result);
         });
 
-        // jwt api 
-        app.get('/add', verifyJWT, async (req, res) => {
-            const decodedEmail = req.decoded.email;
-            const email = req.query.email;
-            if (email === decodedEmail) {
-                const query = { email: email };
-                const cursor = servicesCollection.find(query);
-                const addItems = await cursor.toArray();
-                res.send(addItems)
-            }
-            else {
-                res.status(403).send({ message: 'forbidden access' })
-            }
-        })
+
 
     }
     finally {
